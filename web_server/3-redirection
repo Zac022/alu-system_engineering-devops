@@ -1,11 +1,21 @@
 #!/usr/bin/env bash
-# Installing Nginx on Server and redirect
-sudo apt-get update -y && sudo apt-get upgrade -y
-sudo apt-get install -y nginx
-sudo chown -R "$USER":"$USER" /var/www/
-sudo chown -R "$USER":"$USER" /etc/nginx
-echo "Fantasy World" > /var/www/html/index.nginx-debian.html
-line="\\\trewrite ^/redirect_me https://codepen.io/Zac022/full/jOxgjRa permanent;"
-sudo sed -i "26i $line" /etc/nginx/sites-available/default
-sudo service nginx restart
-sudo service nginx reload
+# Configures an Nginx server so that /redirect_me redirects to another page.
+# The redirection is configured as a "301 Moved Permanently"
+
+apt-get update
+apt-get install -y nginx
+
+mkdir /etc/nginx/html
+touch /etc/nginx/html/index.html
+echo "Fantasy World" > /etc/nginx/html/index.html
+printf %s "server {
+    listen 80;
+    listen [::]:80 default_server;
+    root   /etc/nginx/html;
+    index  index.html index.htm;
+    location /redirect_me {
+        return 301 https://codepen.io/Zac022;
+    }
+}" > /etc/nginx/sites-available/default
+
+service nginx restart
